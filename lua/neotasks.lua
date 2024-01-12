@@ -122,6 +122,29 @@ function M.open_selected_archive()
     api.nvim_command('edit ' .. file_path)
 end
 
+local escape_lua_pattern
+do
+  local matches =
+  {
+    ["^"] = "%^";
+    ["$"] = "%$";
+    ["("] = "%(";
+    [")"] = "%)";
+    ["%"] = "%%";
+    ["."] = "%.";
+    ["["] = "\\[";
+    ["]"] = "\\]";
+    ["*"] = "%*";
+    ["+"] = "%+";
+    ["-"] = "%-";
+    ["?"] = "%?";
+  }
+
+  escape_lua_pattern = function(s)
+    return (s:gsub(".", matches))
+  end
+end
+
 -- Initialization function to create necessary directories
 local function init()
     if vim.fn.isdirectory(todo_base_path) == 0 then
@@ -130,12 +153,12 @@ local function init()
     end
 
     -- Escape special characters for Vim regex
-    local complete_item_pattern = vim.pesc(complete_item_text)
     local new_item_pattern = vim.pesc(new_item_text)
+    local complete_item_pattern = vim.pesc(complete_item_text)
 
     -- Adjust the syntax matching commands
-    vim.cmd("syntax match TodoNew '^" .. new_item_text .. ".*$'")
-    vim.cmd("syntax match TodoComplete '^" .. complete_item_text .. ".*$'")
+    vim.cmd("syntax match TodoNew /^" .. new_item_pattern .. ".*$/")
+    vim.cmd("syntax match TodoComplete '^" .. complete_item_pattern .. ".*$'")
     vim.cmd([[
         syntax match TodoHeader /^#.*$/
         syntax match TodoSubHeader /^##.*$/
