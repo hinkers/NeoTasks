@@ -279,8 +279,8 @@ local function init()
     ]])
 
     -- Register commands and keybindings
-    api.nvim_create_user_command('TodoList', M.config.open_todo_list, {})
-    api.nvim_create_user_command('TodoArchives', M.config.open_archive_selector, {})
+    api.nvim_create_user_command('TodoList', M.open_todo_list, {})
+    api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
 end
 
 -- Run the initalization function
