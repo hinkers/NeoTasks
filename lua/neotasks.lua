@@ -69,6 +69,14 @@ function M.complete_todo_item()
         api.nvim_buf_set_lines(0, row - 1, row, false, {})
     end
 
+    -- Update variables
+    api.nvim_win_set_cursor(0, {total_lines, 0})
+    row, col = unpack(api.nvim_win_get_cursor(0))
+    line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+
+    -- Mark the current line as complete
+    api.nvim_buf_set_lines(0, row - 1, row, false, {complete_item_text .. line})
+
     save_todo_list()
 end
 
