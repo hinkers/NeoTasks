@@ -1,9 +1,11 @@
 local api = vim.api
+local M = {}
+
 local todo_file_path = vim.fn.expand("~/NeoTasks/todo.txt")
 local archive_base_path = vim.fn.expand("~/NeoTasks/archives")
 
 -- Function to open Todo list pane
-local function open_todo_list()
+local function M.open_todo_list()
     -- Split window and open or create todo list file
     vim.cmd("vsplit")
     vim.cmd("wincmd h")
@@ -20,7 +22,7 @@ local function save_todo_list()
 end
 
 -- Function to add new Todo item
-local function add_todo_item()
+local function M.add_todo_item()
     -- Add new line at the end of the buffer
     api.nvim_buf_set_lines(0, -1, -1, false, {""})
     -- Go to the new line
@@ -31,7 +33,7 @@ local function add_todo_item()
 end
 
 -- Function to mark Todo item as complete
-local function complete_todo_item()
+local function M.complete_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
     -- Mark the current line as complete
@@ -40,7 +42,7 @@ local function complete_todo_item()
 end
 
 -- Function to archive Todo item
-local function archive_todo_item()
+local function M.archive_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
     local date = os.date("%Y-%m-%d")
@@ -54,7 +56,9 @@ local function archive_todo_item()
 end
 
 -- Register commands and keybindings
-api.nvim_create_user_command('TodoList', open_todo_list, {})
-api.nvim_buf_set_keymap(0, 'n', '<leader>td', '<cmd>lua add_todo_item()<CR>', {noremap = true, silent = true})
-api.nvim_buf_set_keymap(0, 'n', '<leader>tc', '<cmd>lua complete_todo_item()<CR>', {noremap = true, silent = true})
-api.nvim_buf_set_keymap(0, 'n', '<leader>ta', '<cmd>lua archive_todo_item()<CR>', {noremap = true, silent = true})
+api.nvim_create_user_command('TodoList', M.open_todo_list, {})
+api.nvim_buf_set_keymap(0, 'n', '<leader>td', '<cmd>lua require("neotasks").add_todo_item()<CR>', {noremap = true, silent = true})
+api.nvim_buf_set_keymap(0, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo_item()<CR>', {noremap = true, silent = true})
+api.nvim_buf_set_keymap(0, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo_item()<CR>', {noremap = true, silent = true})
+
+return M
