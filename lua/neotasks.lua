@@ -8,14 +8,20 @@ local archive_base_path = vim.fn.expand("~/NeoTasks/archives/")
 
 -- Function to open Todo list pane
 function M.open_todo_list()
-    -- Split window and open or create todo list file
     vim.cmd("vsplit")
+    vim.cmd("vertical resize 60")
     vim.cmd("wincmd h")
     if vim.fn.filereadable(todo_file_path) == 0 then
-        -- Create new file if not exists
         vim.fn.writefile({}, todo_file_path)
     end
     api.nvim_command('edit ' .. todo_file_path)
+
+    local bufnr = api.nvim_get_current_buf()
+
+    -- Set buffer-local keymaps
+    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>td', '<cmd>lua require("neotasks").add_todo_item()<CR>', {noremap = true, silent = true})
+    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo_item()<CR>', {noremap = true, silent = true})
+    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo_item()<CR>', {noremap = true, silent = true})
 end
 
 -- Function to save Todo list
@@ -70,8 +76,5 @@ init()
 
 -- Register commands and keybindings
 api.nvim_create_user_command('TodoList', M.open_todo_list, {})
-api.nvim_buf_set_keymap(0, 'n', '<leader>td', '<cmd>lua require("neotasks").add_todo_item()<CR>', {noremap = true, silent = true})
-api.nvim_buf_set_keymap(0, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo_item()<CR>', {noremap = true, silent = true})
-api.nvim_buf_set_keymap(0, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo_item()<CR>', {noremap = true, silent = true})
 
 return M
