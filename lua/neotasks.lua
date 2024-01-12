@@ -35,16 +35,9 @@ end
 -- Function to add new Todo item
 function M.add_todo_item()
     local current_line_count = api.nvim_buf_line_count(0)
-    -- Add new line with "[ ] " at the end of the buffer
     api.nvim_buf_set_lines(0, current_line_count, current_line_count, false, {new_item_text})
-    
-    -- Move cursor to the end of the new item text
     api.nvim_win_set_cursor(0, {current_line_count + 1, #new_item_text})
-
-    -- Enter insert mode and move cursor one character to the right
-    api.nvim_command("startinsert")
-    api.nvim_feedkeys('a', 'n', false)
-
+    api.nvim_command("startinsert!")
     save_todo_list()
 end
 
