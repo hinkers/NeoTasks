@@ -52,23 +52,13 @@ end
 function M.complete_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
-    if line:sub(1, #new_item_text) == new_item_text then
-        line = complete_item_text .. line:sub(#new_item_text + 1)
-    end
-    api.nvim_buf_set_lines(0, row - 1, row, false, {line})
-    save_todo_list()
-end
-
--- Function to archive Todo item
-function M.archive_todo_item()
-    local row, col = unpack(api.nvim_win_get_cursor(0))
-    local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
     local total_lines = api.nvim_buf_line_count(0)
     local last_line = api.nvim_buf_get_lines(0, total_lines - 1, total_lines, false)[1]
 
     -- Check if the last line is a completed item, if not add a newline
     if not last_line:find("^" .. vim.pesc(complete_item_text)) then
         api.nvim_buf_set_lines(0, total_lines, total_lines, false, {""})
+        total_lines = api.nvim_buf_line_count(0)
     end
 
     -- Move the completed item to the bottom of the file
@@ -79,6 +69,26 @@ function M.archive_todo_item()
         api.nvim_buf_set_lines(0, row - 1, row, false, {})
     end
 
+    save_todo_list()
+end
+
+-- Function to archive Todo item
+function M.archive_todo_item()
+    local row, col = unpack(api.nvim_win_get_cursor(0))
+    local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+    local date = os.date("%Y-%m-%d")
+    local archive_file_path = archive_base_path .. "archive_" .. date .. ".txt"
+
+    -- Check if the archive file exists and create it if it doesn't
+    if vim.fn.filereadable(archive_file_path) == 0 then
+        vim.fn.writefile({}, archive_file_path)
+    end
+    local archive_content = vim.fn.readfile(archive_file_path)
+    table.insert(archive_content, line)
+    vim.fn.writefile(archive_content, archive_file_path)
+
+    -- Delete the current line
+    api.nvim_buf_set_lines(0, row - 1, row, false, {})
     save_todo_list()
 end
 
