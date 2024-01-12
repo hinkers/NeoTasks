@@ -11,14 +11,14 @@ M.config = {
 }
 
 local todo_file_name = "todo.txt"
-local todo_base_path = vim.fn.expand(M.base_path)
+local todo_base_path = vim.fn.expand(M.config.config.config.base_path)
 local todo_file_path = todo_base_path .. todo_file_name
-local archive_base_path = vim.fn.expand(M.archive_base_path)
+local archive_base_path = vim.fn.expand(M.config.archive_base_path)
 
 -- Function to open Todo list pane
 function M.open_todo_list()
     vim.cmd("vsplit")
-    vim.cmd("vertical resize " .. M.panel_width)
+    vim.cmd("vertical resize " .. M.config.panel_width)
     vim.cmd("wincmd h")
     if vim.fn.filereadable(todo_file_path) == 0 then
         vim.fn.writefile({"# Todo List", "", ""}, todo_file_path)
@@ -45,10 +45,10 @@ end
 function M.add_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     -- Insert new line with "[ ] " right below the current line
-    api.nvim_buf_set_lines(0, row, row, false, {M.new_item_text}) 
+    api.nvim_buf_set_lines(0, row, row, false, {M.config.new_item_text}) 
     
-    -- Move cursor to the beginning of the new line
-    api.nvim_win_set_cursor(0, {row + 1, #M.new_item_text - 1})
+    -- M.configove cursor to the beginning of the new line
+    api.nvim_win_set_cursor(0, {row + 1, #M.config.new_item_text - 1})
 
     -- Enter insert mode
     api.nvim_command("startinsert!")
@@ -61,19 +61,19 @@ local function complete_todo_item()
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
 
     -- Remove the new item text from the line
-    line = line:gsub(vim.pesc(M.new_item_text), "", 1)
+    line = line:gsub(vim.pesc(M.config.new_item_text), "", 1)
 
     local total_lines = api.nvim_buf_line_count(0)
     local last_line = api.nvim_buf_get_lines(0, total_lines - 1, total_lines, false)[1]
 
     -- Check if the last line is a completed item, if not add a newline
-    if not last_line:find("^" .. vim.pesc(M.complete_item_text)) then
+    if not last_line:find("^" .. vim.pesc(M.config.complete_item_text)) then
         api.nvim_buf_set_lines(0, total_lines, total_lines, false, {""})
         total_lines = total_lines + 1
     end
 
-    -- Move the completed item to the bottom of the file
-    api.nvim_buf_set_lines(0, total_lines, total_lines, false, {M.complete_item_text .. line})
+    -- M.configove the completed item to the bottom of the file
+    api.nvim_buf_set_lines(0, total_lines, total_lines, false, {M.config.complete_item_text .. line})
 
     -- Delete the original line of the completed item
     if row < total_lines then  -- Only delete the original line if it's not the last line
@@ -172,7 +172,7 @@ function M.open_archive_selector()
     local editor_width = vim.api.nvim_get_option('columns')
     local editor_height = vim.api.nvim_get_option('lines')
 
-    local panel_width = M.config.panel_width
+    local panel_width = M.config.config.panel_width
     local panel_height = 20
 
     local options = {
@@ -248,8 +248,8 @@ local function init()
     end
 
     -- Escape special characters for Vim regex
-    local new_item_pattern = escape_lua_pattern(M.new_item_text)
-    local complete_item_pattern = escape_lua_pattern(M.complete_item_text)
+    local new_item_pattern = escape_lua_pattern(M.config.new_item_text)
+    local complete_item_pattern = escape_lua_pattern(M.config.complete_item_text)
 
     -- Adjust the syntax matching commands
     vim.cmd("syntax match TodoNew /^" .. new_item_pattern .. ".*$/")
@@ -279,8 +279,8 @@ local function init()
     ]])
 
     -- Register commands and keybindings
-    api.nvim_create_user_command('TodoList', M.open_todo_list, {})
-    api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
+    api.nvim_create_user_command('TodoList', M.config.open_todo_list, {})
+    api.nvim_create_user_command('TodoArchives', M.config.open_archive_selector, {})
 end
 
 -- Run the initalization function
