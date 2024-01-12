@@ -239,7 +239,7 @@ function M.open_selected_archive()
     api.nvim_win_close(winnr, true)
 
     -- Open the selected file
-    api.nvim_command('edit ' .. file_path)
+    api.nvim_command('vsplit' .. file_path)
 end
 
 local escape_lua_pattern
