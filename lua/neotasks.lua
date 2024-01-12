@@ -1,8 +1,10 @@
 local api = vim.api
 local M = {}
 
-local todo_file_path = vim.fn.expand("~/NeoTasks/todo.txt")
-local archive_base_path = vim.fn.expand("~/NeoTasks/archives")
+local todo_file_name = "todo.txt"
+local todo_base_path = vim.fn.expand("~/NeoTasks/")
+local todo_file_path = todo_base_path .. todo_file_name
+local archive_base_path = vim.fn.expand("~/NeoTasks/archives/")
 
 -- Function to open Todo list pane
 function M.open_todo_list()
@@ -54,6 +56,17 @@ function M.archive_todo_item()
     api.nvim_buf_set_lines(0, row - 1, row, false, {})
     save_todo_list()
 end
+
+-- Initialization function to create necessary directories
+local function init()
+    if vim.fn.isdirectory(todo_base_path) == 0 then
+        vim.fn.mkdir(todo_base_path, "p")  -- 'p' flag to create parent directories as needed
+        vim.fn.mkdir(archive_base_path, "p")
+    end
+end
+
+-- Run the initalization function
+init()
 
 -- Register commands and keybindings
 api.nvim_create_user_command('TodoList', M.open_todo_list, {})
