@@ -35,8 +35,8 @@ function M.open_todo_list()
 
     -- Set buffer-local keymaps for normal mode
     api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tn', '<cmd>lua require("neotasks").add_todo_item()<CR>', {noremap = true, silent = true, desc = "Add new todo item"})
-    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo_item()<CR>', {noremap = true, silent = true, desc = "Complete todo item"})
-    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo_item()<CR>', {noremap = true, silent = true, desc = "Archive todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive todo item"})
 
     -- Set buffer-local keymaps for visual mode
     api.nvim_buf_set_keymap(bufnr, 'v', '<leader>tc', ':<C-u>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete selected todo items"})
