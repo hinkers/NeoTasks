@@ -80,7 +80,23 @@ function M.open_archive_selector()
     local bufnr = api.nvim_create_buf(false, true)
     api.nvim_open_win(bufnr, true, options)
     api.nvim_buf_set_lines(bufnr, 0, -1, false, archives)
-    -- TODO: Add more logic here to make these files selectable
+
+    -- Set buffer-local keymap for Enter key
+    api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', ':lua require("neotasks").open_selected_archive()<CR>', {noremap = true, silent = true})
+end
+
+-- Function to open the selected archive file
+function M.open_selected_archive()
+    local winnr = api.nvim_get_current_win()
+    local bufnr = api.nvim_win_get_buf(winnr)
+    local row = api.nvim_win_get_cursor(winnr)[1]
+    local file_path = api.nvim_buf_get_lines(bufnr, row - 1, row, false)[1]
+
+    -- Close the archive selector window
+    api.nvim_win_close(winnr, true)
+
+    -- Open the selected file
+    api.nvim_command('edit ' .. file_path)
 end
 
 -- Initialization function to create necessary directories
@@ -92,7 +108,7 @@ local function init()
 
     -- Register commands and keybindings
     api.nvim_create_user_command('TodoList', M.open_todo_list, {})
-    api.nvim_create_user_command('OpenArchives', M.open_archive_selector, {})
+    api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
 end
 
 -- Run the initalization function
