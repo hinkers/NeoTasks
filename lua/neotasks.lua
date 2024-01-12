@@ -38,7 +38,7 @@ end
 function M.add_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     -- Insert new line with "[ ] " right below the current line
-    api.nvim_buf_set_lines(0, row, row, false, {new_item_text, ""})
+    api.nvim_buf_set_lines(0, row, row, false, {new_item_text}) 
     
     -- Move cursor to the beginning of the new line
     api.nvim_win_set_cursor(0, {row + 1, #new_item_text - 1})
