@@ -18,6 +18,19 @@ local todo_base_path = vim.fn.expand(M.config.base_path)
 local todo_file_path = todo_base_path .. todo_file_name
 local archive_base_path = vim.fn.expand(M.config.archive_base_path)
 
+local function update_paths()
+    todo_base_path = vim.fn.expand(M.config.base_path)
+    todo_file_path = todo_base_path .. todo_file_name
+    archive_base_path = vim.fn.expand(M.config.archive_base_path)
+end
+
+function M.setup(user_config)
+    if user_config ~= nil then
+        M.config = vim.tbl_extend('force', M.config, user_config)
+    end
+    update_paths()
+end
+
 -- Function to open Todo list pane
 function M.open_todo_list()
     vim.cmd("vsplit")
