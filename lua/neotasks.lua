@@ -11,7 +11,7 @@ M.config = {
 }
 
 local todo_file_name = "todo.txt"
-local todo_base_path = vim.fn.expand(M.config.config.base_path)
+local todo_base_path = vim.fn.expand(M.config.base_path)
 local todo_file_path = todo_base_path .. todo_file_name
 local archive_base_path = vim.fn.expand(M.config.archive_base_path)
 
