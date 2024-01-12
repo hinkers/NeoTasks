@@ -11,7 +11,7 @@ M.config = {
 }
 
 local todo_file_name = "todo.txt"
-local todo_base_path = vim.fn.expand(M.config.config.config.base_path)
+local todo_base_path = vim.fn.expand(M.config.config.base_path)
 local todo_file_path = todo_base_path .. todo_file_name
 local archive_base_path = vim.fn.expand(M.config.archive_base_path)
 
@@ -172,7 +172,7 @@ function M.open_archive_selector()
     local editor_width = vim.api.nvim_get_option('columns')
     local editor_height = vim.api.nvim_get_option('lines')
 
-    local panel_width = M.config.config.panel_width
+    local panel_width = M.config.panel_width
     local panel_height = 20
 
     local options = {
