@@ -129,12 +129,13 @@ local function init()
         vim.fn.mkdir(archive_base_path, "p")
     end
 
-    -- Create syntax highlighting
+    -- Escape special characters for Vim regex
     local complete_item_pattern = vim.pesc(complete_item_text)
     local new_item_pattern = vim.pesc(new_item_text)
 
-    vim.cmd("syntax match TodoNew '^" .. vim.pesc(new_item_text) .. ".*$'")
-    vim.cmd("syntax match TodoComplete '^" .. vim.pesc(complete_item_text) .. ".*$'")
+    -- Adjust the syntax matching commands
+    vim.cmd("syntax match TodoNew '^" .. new_item_pattern .. ".*$'")
+    vim.cmd("syntax match TodoComplete '^" .. complete_item_pattern .. ".*$'")
     vim.cmd([[
         syntax match TodoHeader /^#.*$/
         syntax match TodoSubHeader /^##.*$/
@@ -144,7 +145,7 @@ local function init()
         highlight link TodoSubHeader Type
     ]])
 
-
+    -- Adjust the autocommands
     vim.cmd([[
         augroup TodoListSyntax
         autocmd!
@@ -158,7 +159,7 @@ local function init()
         autocmd FileType todolist highlight link TodoSubHeader Type
         augroup END
     ]])
-    
+
     -- Register commands and keybindings
     api.nvim_create_user_command('TodoList', M.open_todo_list, {})
     api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
