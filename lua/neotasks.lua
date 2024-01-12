@@ -1,6 +1,9 @@
 local api = vim.api
 local M = {}
 
+M.archive  = nil
+M.border_win = nil
+
 -- Default values
 M.config = {
     new_item_text = "[ ] ",
@@ -167,6 +170,22 @@ local function create_border(options)
     return border_buf, border_win
 end
 
+-- Define an autocommand group for neotasks
+vim.cmd([[
+  augroup neotasks
+    autocmd!
+    autocmd WinClosed * lua require('neotasks').on_win_close(vim.fn.expand('<afile>'))
+  augroup END
+]])
+
+-- Function to be called when a window is closed
+function M.on_win_close(closed_win_id)
+    if closed_win_id == tostring(M.archive_win) and M.border_win and vim.api.nvim_win_is_valid(M.border_win) then
+        vim.api.nvim_win_close(M.border_win, true)
+        M.border_win = nil
+    end
+end
+
 -- Function to list and select archive files
 function M.open_archive_selector()
     local editor_width = vim.api.nvim_get_option('columns')
@@ -186,6 +205,7 @@ function M.open_archive_selector()
     -- Create the main window buffer and window
     local bufnr = vim.api.nvim_create_buf(false, true)
     local win = vim.api.nvim_open_win(bufnr, true, options)
+    M.archive_win = win
 
     -- Fill the buffer with archive file names
     local archives = vim.fn.globpath(archive_base_path, "archive_*.txt", false, true)
@@ -201,6 +221,7 @@ function M.open_archive_selector()
 
     -- Create the border
     local border_buf, border_win = create_border(options)
+    M.border_win = border_win
 end
 
 -- Function to open the selected archive file
