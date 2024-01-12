@@ -182,18 +182,25 @@ function M.open_archive_selector()
         row = math.floor((editor_height - panel_height) / 2),
         col = math.floor((editor_width - panel_width) / 2)
     }
-    local archives = vim.fn.globpath(archive_base_path, "archive_*.txt", false, true)
 
-    -- Create the border
-    local border_buf, border_win = create_border(options)
-
-    -- Create and set up the main window
+    -- Create the main window buffer and window
     local bufnr = vim.api.nvim_create_buf(false, true)
     local win = vim.api.nvim_open_win(bufnr, true, options)
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, archives)
+
+    -- Fill the buffer with archive file names
+    local archives = vim.fn.globpath(archive_base_path, "archive_*.txt", false, true)
+    local file_names = {}
+    for _, path in ipairs(archives) do
+        local name = path:match("([^\\/]+)$")
+        table.insert(file_names, name)
+    end
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, file_names)
 
     -- Set buffer-local keymap for Enter key
     vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', ':lua require("neotasks").open_selected_archive()<CR>', {noremap = true, silent = true})
+
+    -- Create the border
+    local border_buf, border_win = create_border(options)
 end
 
 -- Function to open the selected archive file
