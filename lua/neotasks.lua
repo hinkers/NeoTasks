@@ -46,7 +46,7 @@ local function M.archive_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
     local date = os.date("%Y-%m-%d")
-    local archive_file_path = archive_base_path "archive_" .. date .. ".txt"
+    local archive_file_path = archive_base_path .. "archive_" .. date .. ".txt"
     local archive_content = vim.fn.readfile(archive_file_path)
     table.insert(archive_content, line)
     vim.fn.writefile(archive_content, archive_file_path)
