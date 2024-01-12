@@ -45,10 +45,10 @@ end
 function M.add_todo_item()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     -- Insert new line with "[ ] " right below the current line
-    api.nvim_buf_set_lines(0, row, row, false, {m.new_item_text}) 
+    api.nvim_buf_set_lines(0, row, row, false, {M.new_item_text}) 
     
     -- Move cursor to the beginning of the new line
-    api.nvim_win_set_cursor(0, {row + 1, #m.new_item_text - 1})
+    api.nvim_win_set_cursor(0, {row + 1, #M.new_item_text - 1})
 
     -- Enter insert mode
     api.nvim_command("startinsert!")
@@ -61,19 +61,19 @@ local function complete_todo_item()
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
 
     -- Remove the new item text from the line
-    line = line:gsub(vim.pesc(m.new_item_text), "", 1)
+    line = line:gsub(vim.pesc(M.new_item_text), "", 1)
 
     local total_lines = api.nvim_buf_line_count(0)
     local last_line = api.nvim_buf_get_lines(0, total_lines - 1, total_lines, false)[1]
 
     -- Check if the last line is a completed item, if not add a newline
-    if not last_line:find("^" .. vim.pesc(m.complete_item_text)) then
+    if not last_line:find("^" .. vim.pesc(M.complete_item_text)) then
         api.nvim_buf_set_lines(0, total_lines, total_lines, false, {""})
         total_lines = total_lines + 1
     end
 
     -- Move the completed item to the bottom of the file
-    api.nvim_buf_set_lines(0, total_lines, total_lines, false, {m.complete_item_text .. line})
+    api.nvim_buf_set_lines(0, total_lines, total_lines, false, {M.complete_item_text .. line})
 
     -- Delete the original line of the completed item
     if row < total_lines then  -- Only delete the original line if it's not the last line
@@ -243,8 +243,8 @@ local function init()
     end
 
     -- Escape special characters for Vim regex
-    local new_item_pattern = escape_lua_pattern(m.new_item_text)
-    local complete_item_pattern = escape_lua_pattern(m.complete_item_text)
+    local new_item_pattern = escape_lua_pattern(M.new_item_text)
+    local complete_item_pattern = escape_lua_pattern(M.complete_item_text)
 
     -- Adjust the syntax matching commands
     vim.cmd("syntax match TodoNew /^" .. new_item_pattern .. ".*$/")
