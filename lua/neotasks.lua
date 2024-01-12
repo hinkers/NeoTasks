@@ -31,10 +31,11 @@ end
 
 -- Function to add new Todo item
 function M.add_todo_item()
-    -- Add new line at the end of the buffer
-    api.nvim_buf_set_lines(0, -1, -1, false, {""})
-    -- Go to the new line
-    api.nvim_win_set_cursor(0, {api.nvim_buf_line_count(0), 0})
+    local current_line_count = api.nvim_buf_line_count(0)
+    -- Add new line with "[ ] " at the end of the buffer
+    api.nvim_buf_set_lines(0, current_line_count, current_line_count, false, {"[ ] "})
+    -- Place cursor at the end of the new line
+    api.nvim_win_set_cursor(0, {current_line_count + 1, 4})
     -- Switch to insert mode
     api.nvim_command("startinsert")
     save_todo_list()
@@ -55,9 +56,16 @@ function M.archive_todo_item()
     local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
     local date = os.date("%Y-%m-%d")
     local archive_file_path = archive_base_path .. "archive_" .. date .. ".txt"
+    
+    -- Check if the archive file exists and create it if it doesn't
+    if vim.fn.filereadable(archive_file_path) == 0 then
+        vim.fn.writefile({}, archive_file_path)
+    end
+
     local archive_content = vim.fn.readfile(archive_file_path)
     table.insert(archive_content, line)
     vim.fn.writefile(archive_content, archive_file_path)
+    
     -- Delete the current line
     api.nvim_buf_set_lines(0, row - 1, row, false, {})
     save_todo_list()
