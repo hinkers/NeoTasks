@@ -153,8 +153,8 @@ local function init()
     end
 
     -- Escape special characters for Vim regex
-    local new_item_pattern = vim.pesc(new_item_text)
-    local complete_item_pattern = vim.pesc(complete_item_text)
+    local new_item_pattern = escape_lua_pattern(new_item_text)
+    local complete_item_pattern = escape_lua_pattern(complete_item_text)
 
     -- Adjust the syntax matching commands
     vim.cmd("syntax match TodoNew /^" .. new_item_pattern .. ".*$/")
