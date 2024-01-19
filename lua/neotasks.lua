@@ -321,7 +321,7 @@ local function move_task_to_group(bufnr, task_line, group_line)
     end
 
     -- Insert the task under the group header
-    api.nvim_buf_set_lines(bufnr, group_line, group_line, false, {task, ""})
+    api.nvim_buf_set_lines(bufnr, group_line + 1, group_line, false, {task})
 end
 
 function M.move_to_group(group_name)
@@ -394,7 +394,7 @@ local function init()
     -- Register commands and keybindings
     api.nvim_create_user_command('TodoList', M.open_todo_list, {})
     api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
-    api.nvim_create_user_command('TodoGroup', function(opts) M.move_to_group(opts.args) end, { nargs = 1 })
+    api.nvim_create_user_command('TodoGroup', function(opts) M.move_to_group(opts.args) end, { nargs = 1, range = '%' })
 end
 
 -- Run the initalization function
