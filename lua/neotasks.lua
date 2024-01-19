@@ -339,7 +339,7 @@ function M.move_to_group(group_name)
     else
         -- Iterate over each line in the visual selection
         for row = start_row, end_row do
-            move_task_to_group(bufnr, row[1], header_line)
+            move_task_to_group(bufnr, row, header_line)
         end
     end
 end
