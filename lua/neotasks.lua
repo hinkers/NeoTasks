@@ -52,10 +52,10 @@ function M.open_todo_list()
     api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive todo item"})
     api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tg', [[:TodoGroup ]], { noremap = true, silent = false })
 
-
     -- Set buffer-local keymaps for visual mode
     api.nvim_buf_set_keymap(bufnr, 'v', '<leader>tc', ':<C-u>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete selected todo items"})
     api.nvim_buf_set_keymap(bufnr, 'v', '<leader>ta', ':<C-u>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive selected todo items"})
+    api.nvim_buf_set_keymap(bufnr, 'v', '<leader>tg', [[:TodoGroup ]], { noremap = true, silent = false })
 end
 
 -- Function to save Todo list
@@ -295,10 +295,15 @@ local function find_or_create_group_header(bufnr, group_name)
     end
 
     -- Determine where to create the new group header
-    local insert_line = complete_line_index or #lines + 1
+    local insert_line = #lines + 1
+    local header_lines = {header}
+    if complete_line_index ~= nil then
+        insert_line = complete_line_index - 1 
+        header_lines = {"", header}
+    end
 
     -- Create the new group header
-    api.nvim_buf_set_lines(bufnr, insert_line, insert_line, false, {header, ""})
+    api.nvim_buf_set_lines(bufnr, insert_line, insert_line, false, header_lines) 
     return insert_line + 1  -- Return new header line number (right after the header)
 end
 
@@ -320,13 +325,27 @@ end
 
 function M.move_to_group(group_name)
     local bufnr = api.nvim_get_current_buf()
-    local current_line = api.nvim_win_get_cursor(0)[1]
+
+    -- Determine the mode and get the line range
+    local mode = vim.fn.mode()
+    local start_line, end_line
+    if mode == 'v' or mode == 'V' or mode == '\22' then  -- Visual mode
+        -- Get the start and end of the visual selection
+        start_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '<'))
+        end_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '>'))
+    else  -- Normal mode
+        start_line = api.nvim_win_get_cursor(0)[1]
+        end_line = start_line
+    end
 
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
-    -- Move the task to the group
-    move_task_to_group(bufnr, current_line, header_line)
+    -- Move each task to the group
+    for line = start_line, end_line do
+        move_task_to_group(bufnr, line, header_line)
+        header_line = header_line + 1  -- Adjust header line for next task
+    end
 end
 
 -- Initialization function to create necessary directories
