@@ -237,6 +237,7 @@ function M.open_archive_selector()
 
     -- Set buffer-local keymap for Enter key
     vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', ':lua require("neotasks").open_selected_archive()<CR>', {noremap = true, silent = true})
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':q<CR>', {noremap = true, silent = true})
 
     -- Create the border
     local border_buf, border_win = create_border(options)
@@ -299,7 +300,7 @@ local function find_or_create_group_header(bufnr, group_name)
     local header_lines = {header}
     if complete_line_index ~= nil then
         insert_line = complete_line_index - 1 
-        header_lines = {"", header}
+        header_lines = {header, ""}
     end
 
     -- Create the new group header
@@ -326,25 +327,20 @@ end
 function M.move_to_group(group_name)
     local bufnr = api.nvim_get_current_buf()
 
-    -- Determine the mode and get the line range
-    local mode = vim.fn.mode()
-    local start_line, end_line
-    if mode == 'v' or mode == 'V' or mode == '\22' then  -- Visual mode
-        -- Get the start and end of the visual selection
-        start_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '<'))
-        end_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '>'))
-    else  -- Normal mode
-        start_line = api.nvim_win_get_cursor(0)[1]
-        end_line = start_line
-    end
-
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
-    -- Move each task to the group
-    for line = start_line, end_line do
-        move_task_to_group(bufnr, line, header_line)
-        header_line = header_line + 1  -- Adjust header line for next task
+    local start_row, _ = unpack(api.nvim_buf_get_mark(0, '<'))
+    local end_row, _ = unpack(api.nvim_buf_get_mark(0, '>'))
+
+    if start_row == 1 and end_row == 1 then
+        -- If no visual selection, just complete the current line
+        move_task_to_group(bufnr, api.nvim_win_get_cursor(0)[1], header_line)
+    else
+        -- Iterate over each line in the visual selection
+        for row = start_row, end_row do
+            move_task_to_group(bufnr, row[1], header_line)
+        end
     end
 end
 
