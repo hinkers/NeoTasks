@@ -50,6 +50,8 @@ function M.open_todo_list()
     api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tn', '<cmd>lua require("neotasks").add_todo_item()<CR>', {noremap = true, silent = true, desc = "Add new todo item"})
     api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete todo item"})
     api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tg', [[:TodoGroup ]], { noremap = true, silent = false })
+
 
     -- Set buffer-local keymaps for visual mode
     api.nvim_buf_set_keymap(bufnr, 'v', '<leader>tc', ':<C-u>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete selected todo items"})
@@ -278,6 +280,55 @@ do
     end
 end
 
+local function find_or_create_group_header(bufnr, group_name)
+    local header = "## " .. group_name
+    local complete_header = "## Complete"
+    local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+    local complete_line_index = nil
+    for i, line in ipairs(lines) do
+        if line:lower() == header:lower() then
+            return i  -- Return line number where the group header is found
+        elseif line:lower() == complete_header:lower() then
+            complete_line_index = i  -- Note the line number of the 'Complete' group
+        end
+    end
+
+    -- Determine where to create the new group header
+    local insert_line = complete_line_index or #lines + 1
+
+    -- Create the new group header
+    api.nvim_buf_set_lines(bufnr, insert_line, insert_line, false, {header, ""})
+    return insert_line + 1  -- Return new header line number (right after the header)
+end
+
+local function move_task_to_group(bufnr, task_line, group_line)
+    -- Get the task
+    local task = api.nvim_buf_get_lines(bufnr, task_line - 1, task_line, false)[1]
+
+    -- Remove the task from its current position
+    api.nvim_buf_set_lines(bufnr, task_line - 1, task_line, false, {})
+
+    -- Adjust group_line if task_line comes before group_line
+    if task_line < group_line then
+        group_line = group_line - 1
+    end
+
+    -- Insert the task under the group header
+    api.nvim_buf_set_lines(bufnr, group_line, group_line, false, {task, ""})
+end
+
+function M.move_to_group(group_name)
+    local bufnr = api.nvim_get_current_buf()
+    local current_line = api.nvim_win_get_cursor(0)[1]
+
+    -- Find or create the group header
+    local header_line = find_or_create_group_header(bufnr, group_name)
+
+    -- Move the task to the group
+    move_task_to_group(bufnr, current_line, header_line)
+end
+
 -- Initialization function to create necessary directories
 local function init()
     if vim.fn.isdirectory(todo_base_path) == 0 then
@@ -319,6 +370,7 @@ local function init()
     -- Register commands and keybindings
     api.nvim_create_user_command('TodoList', M.open_todo_list, {})
     api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
+    api.nvim_create_user_command('TodoGroup', function(opts) M.move_to_group(opts.args) end, { nargs = 1 })
 end
 
 -- Run the initalization function
