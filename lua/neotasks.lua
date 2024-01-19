@@ -327,19 +327,28 @@ end
 function M.move_to_group(group_name)
     local bufnr = api.nvim_get_current_buf()
 
+    -- Determine the lines to move based on the current mode (normal or visual)
+    local mode = vim.fn.mode()
+    local start_line, end_line
+    if mode == 'v' or mode == 'V' or mode == '\22' then  -- Visual mode
+        start_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '<'))
+        end_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '>'))
+        -- Exit visual mode to prevent unexpected behavior
+        vim.cmd('normal! <Esc>')
+    else  -- Normal mode
+        start_line = api.nvim_win_get_cursor(0)[1]
+        end_line = start_line
+    end
+
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
-    local start_row, _ = unpack(api.nvim_buf_get_mark(0, '<'))
-    local end_row, _ = unpack(api.nvim_buf_get_mark(0, '>'))
-
-    if start_row == 1 and end_row == 1 then
-        -- If no visual selection, just complete the current line
-        move_task_to_group(bufnr, api.nvim_win_get_cursor(0)[1], header_line)
-    else
-        -- Iterate over each line in the visual selection
-        for row = start_row, end_row do
-            move_task_to_group(bufnr, row, header_line)
+    -- Move each task to the group
+    for i = start_line, end_line do
+        move_task_to_group(bufnr, start_line, header_line + 1)  -- +1 to insert below the header
+        if i ~= end_line then
+            -- Adjust for the fact that each move shifts the lines up
+            header_line = header_line + 1
         end
     end
 end
