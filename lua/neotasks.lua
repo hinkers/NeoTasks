@@ -333,8 +333,7 @@ function M.move_to_group(group_name)
     if mode == 'v' or mode == 'V' or mode == '\22' then  -- Visual mode
         start_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '<'))
         end_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '>'))
-        -- Exit visual mode to prevent unexpected behavior
-        vim.cmd('normal! <Esc>')
+        vim.cmd('normal! <Esc>')  -- Exit visual mode to prevent unexpected behavior
     else  -- Normal mode
         start_line = api.nvim_win_get_cursor(0)[1]
         end_line = start_line
@@ -343,11 +342,16 @@ function M.move_to_group(group_name)
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
+    -- If moving multiple lines and the start is after the header, adjust the header_line
+    if end_line - start_line > 0 and start_line > header_line then
+        header_line = header_line + (end_line - start_line + 1)
+    end
+
     -- Move each task to the group
-    for i = start_line, end_line do
+    for line = start_line, end_line do
+        -- Adjust the line number for the task and header line after each move
         move_task_to_group(bufnr, start_line, header_line + 1)  -- +1 to insert below the header
-        if i ~= end_line then
-            -- Adjust for the fact that each move shifts the lines up
+        if line < end_line then
             header_line = header_line + 1
         end
     end
