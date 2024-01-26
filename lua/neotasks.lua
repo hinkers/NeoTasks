@@ -324,21 +324,13 @@ local function move_task_to_group(bufnr, task_line, group_line)
     api.nvim_buf_set_lines(bufnr, group_line, group_line, false, {task})
 end
 
-function M.move_to_group(group_name)
+function M.move_to_group(group_name, start_line, end_line)
     local bufnr = api.nvim_get_current_buf()
 
-    -- Determine the lines to move based on the current mode (normal or visual)
-    local mode = vim.fn.mode()
-    local start_line, end_line
-    if mode == 'v' or mode == 'V' or mode == '\22' then  -- Visual mode
-        start_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '<'))
-        end_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '>'))
-        vim.cmd('normal! <Esc>')  -- Exit visual mode to prevent unexpected behavior
-        print('Visual mode detected ' .. start_line .. ' | ' .. end_line)
-    else  -- Normal mode
+    -- If no range is provided, use the current line
+    if not start_line or not end_line then
         start_line = api.nvim_win_get_cursor(0)[1]
         end_line = start_line
-        print('STILL IN NORMAL MODE')
     end
 
     -- Find or create the group header
@@ -403,7 +395,9 @@ local function init()
     -- Register commands and keybindings
     api.nvim_create_user_command('TodoList', M.open_todo_list, {})
     api.nvim_create_user_command('TodoArchives', M.open_archive_selector, {})
-    api.nvim_create_user_command('TodoGroup', function(opts) M.move_to_group(opts.args) end, { nargs = 1, range = '%' })
+    api.nvim_create_user_command('TodoGroup', function(opts)
+        M.move_to_group(opts.args, opts.line1, opts.line2)
+    end, { nargs = 1, range = true })
 end
 
 -- Run the initalization function
