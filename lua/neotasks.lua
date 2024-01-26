@@ -66,27 +66,21 @@ function M.open_todo_list()
     api.nvim_buf_set_keymap(bufnr, 'v', M.config.keybinds.group_todo, [[:TodoGroup ]], { noremap = true, silent = false })
 end
 
--- Function to save Todo list
-local function save_todo_list()
-    vim.cmd('write')
-end
-
 -- Function to add new Todo item
 function M.add_todo_item(after)
     local row, col = unpack(api.nvim_win_get_cursor(0))
-    -- Insert new line with "[ ] " right below the current line
-    api.nvim_buf_set_lines(0, row, row, false, {M.config.new_item_text}) 
-    
-    -- M.configove cursor to the beginning of the new line
+
     if after then
+        api.nvim_buf_set_lines(0, row, row, false, {M.config.new_item_text}) 
         api.nvim_win_set_cursor(0, {row + 1, #M.config.new_item_text - 1})
     else
+        api.nvim_buf_set_lines(0, row - 1, row - 1, false, {M.config.new_item_text}) 
         api.nvim_win_set_cursor(0, {row - 1, #M.config.new_item_text - 1})
     end
 
     -- Enter insert mode
     api.nvim_command("startinsert!")
-    save_todo_list()
+    vim.cmd('write')
 end
 
 -- Function to mark Todo item as complete
@@ -102,13 +96,13 @@ local function complete_todo_item()
     local completed_line = M.config.complete_item_text .. line
 
     -- Find or create the "Completed" group header
-    local header_line = find_or_create_group_header(bufnr, "Completed")
+    local header_line = M.find_or_create_group_header(bufnr, "Completed")
 
     -- Move the completed item to the "Completed" group
     api.nvim_buf_set_lines(bufnr, header_line, header_line, false, {completed_line})
     api.nvim_buf_set_lines(bufnr, row - 1, row, false, {})
 
-    save_todo_list()
+    vim.cmd('write')
 end
 
 -- Function to archive Todo item
@@ -128,7 +122,7 @@ local function archive_todo_item()
 
     -- Delete the current line
     api.nvim_buf_set_lines(0, row - 1, row, false, {})
-    save_todo_list()
+    vim.cmd('write')
 end
 
 -- Function to handle archiving of single or multiple lines
@@ -287,7 +281,7 @@ do
     end
 end
 
-local function find_or_create_group_header(bufnr, group_name)
+function M.find_or_create_group_header(bufnr, group_name)
     local header = "## " .. group_name
     local complete_header = "## Completed"
     local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -314,7 +308,7 @@ local function find_or_create_group_header(bufnr, group_name)
     return insert_line + 1  -- Return new header line number (right after the header)
 end
 
-local function move_task_to_group(bufnr, task_line, group_line)
+function M.move_task_to_group(bufnr, task_line, group_line)
     -- Get the task
     local task = api.nvim_buf_get_lines(bufnr, task_line - 1, task_line, false)[1]
 
@@ -344,7 +338,7 @@ function M.move_to_group(group_name, start_line, end_line)
     end
 
     -- Find or create the group header
-    local header_line = find_or_create_group_header(bufnr, group_name)
+    local header_line = M.find_or_create_group_header(bufnr, group_name)
 
     -- Collect the tasks
     local tasks = api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
