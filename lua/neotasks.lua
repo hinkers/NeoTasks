@@ -338,6 +338,7 @@ function M.move_to_group(group_name)
     else  -- Normal mode
         start_line = api.nvim_win_get_cursor(0)[1]
         end_line = start_line
+        print('STILL IN NORMAL MODE')
     end
 
     -- Find or create the group header
