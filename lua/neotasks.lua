@@ -10,7 +10,14 @@ M.config = {
     complete_item_text = "[x] ",
     panel_width = 60,
     base_path = "~/NeoTasks/",
-    archive_base_path = "~/NeoTasks/archives/"
+    archive_base_path = "~/NeoTasks/archives/",
+    keybinds = {
+        append_todo = "gtn",
+        prepend_todo = "gtN",
+        complete_todo = "gtc",
+        archive_todo = "gta",
+        group_todo = "gtg"
+    }
 }
 
 local todo_file_name = "todo.txt"
@@ -37,7 +44,7 @@ function M.open_todo_list()
     vim.cmd("vertical resize " .. M.config.panel_width)
     vim.cmd("wincmd h")
     if vim.fn.filereadable(todo_file_path) == 0 then
-        vim.fn.writefile({"# Todo List", "", ""}, todo_file_path)
+        vim.fn.writefile({"# Todo List", "", "", M.config.new_item_text}, todo_file_path)
     end
     api.nvim_command('edit ' .. todo_file_path)
 
@@ -47,15 +54,16 @@ function M.open_todo_list()
     api.nvim_command('setlocal filetype=todolist')
 
     -- Set buffer-local keymaps for normal mode
-    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tn', '<cmd>lua require("neotasks").add_todo_item()<CR>', {noremap = true, silent = true, desc = "Add new todo item"})
-    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tc', '<cmd>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete todo item"})
-    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ta', '<cmd>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive todo item"})
-    api.nvim_buf_set_keymap(bufnr, 'n', '<leader>tg', [[:TodoGroup ]], { noremap = true, silent = false })
+    api.nvim_buf_set_keymap(bufnr, 'n', M.config.keybinds.append_todo, '<cmd>lua require("neotasks").add_todo_item(true)<CR>', {noremap = true, silent = true, desc = "Add new todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', M.config.keybinds.prepend_todo, '<cmd>lua require("neotasks").add_todo_item(false)<CR>', {noremap = true, silent = true, desc = "Add new todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', M.config.keybinds.complete_todo, '<cmd>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', M.config.keybinds.archive_todo, '<cmd>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive todo item"})
+    api.nvim_buf_set_keymap(bufnr, 'n', M.config.keybinds.group_todo, [[:TodoGroup ]], { noremap = true, silent = false })
 
     -- Set buffer-local keymaps for visual mode
-    api.nvim_buf_set_keymap(bufnr, 'v', '<leader>tc', ':<C-u>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete selected todo items"})
-    api.nvim_buf_set_keymap(bufnr, 'v', '<leader>ta', ':<C-u>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive selected todo items"})
-    api.nvim_buf_set_keymap(bufnr, 'v', '<leader>tg', [[:TodoGroup ]], { noremap = true, silent = false })
+    api.nvim_buf_set_keymap(bufnr, 'v', M.config.keybinds.complete_todo, ':<C-u>lua require("neotasks").complete_todo()<CR>', {noremap = true, silent = true, desc = "Complete selected todo items"})
+    api.nvim_buf_set_keymap(bufnr, 'v', M.config.keybinds.archive_todo, ':<C-u>lua require("neotasks").archive_todo()<CR>', {noremap = true, silent = true, desc = "Archive selected todo items"})
+    api.nvim_buf_set_keymap(bufnr, 'v', M.config.keybinds.group_todo, [[:TodoGroup ]], { noremap = true, silent = false })
 end
 
 -- Function to save Todo list
@@ -64,13 +72,17 @@ local function save_todo_list()
 end
 
 -- Function to add new Todo item
-function M.add_todo_item()
+function M.add_todo_item(after)
     local row, col = unpack(api.nvim_win_get_cursor(0))
     -- Insert new line with "[ ] " right below the current line
     api.nvim_buf_set_lines(0, row, row, false, {M.config.new_item_text}) 
     
     -- M.configove cursor to the beginning of the new line
-    api.nvim_win_set_cursor(0, {row + 1, #M.config.new_item_text - 1})
+    if after then
+        api.nvim_win_set_cursor(0, {row + 1, #M.config.new_item_text - 1})
+    else
+        api.nvim_win_set_cursor(0, {row - 1, #M.config.new_item_text - 1})
+    end
 
     -- Enter insert mode
     api.nvim_command("startinsert!")
@@ -79,28 +91,22 @@ end
 
 -- Function to mark Todo item as complete
 local function complete_todo_item()
+    local bufnr = api.nvim_get_current_buf()
     local row, col = unpack(api.nvim_win_get_cursor(0))
-    local line = api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+    local line = api.nvim_buf_get_lines(bufnr, row - 1, row, false)[1]
 
     -- Remove the new item text from the line
     line = line:gsub(vim.pesc(M.config.new_item_text), "", 1)
 
-    local total_lines = api.nvim_buf_line_count(0)
-    local last_line = api.nvim_buf_get_lines(0, total_lines - 1, total_lines, false)[1]
+    -- Mark the current line as complete
+    local completed_line = M.config.complete_item_text .. line
 
-    -- Check if the last line is a completed item, if not add a newline
-    if not last_line:find("^" .. vim.pesc(M.config.complete_item_text)) then
-        api.nvim_buf_set_lines(0, total_lines, total_lines, false, {""})
-        total_lines = total_lines + 1
-    end
+    -- Find or create the "Completed" group header
+    local header_line = find_or_create_group_header(bufnr, "Completed")
 
-    -- M.configove the completed item to the bottom of the file
-    api.nvim_buf_set_lines(0, total_lines, total_lines, false, {M.config.complete_item_text .. line})
-
-    -- Delete the original line of the completed item
-    if row < total_lines then  -- Only delete the original line if it's not the last line
-        api.nvim_buf_set_lines(0, row - 1, row, false, {})
-    end
+    -- Move the completed item to the "Completed" group
+    api.nvim_buf_set_lines(bufnr, header_line, header_line, false, {completed_line})
+    api.nvim_buf_set_lines(bufnr, row - 1, row, false, {})
 
     save_todo_list()
 end
@@ -283,7 +289,7 @@ end
 
 local function find_or_create_group_header(bufnr, group_name)
     local header = "## " .. group_name
-    local complete_header = "## Complete"
+    local complete_header = "## Completed"
     local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
     local complete_line_index = nil
@@ -297,7 +303,7 @@ local function find_or_create_group_header(bufnr, group_name)
 
     -- Determine where to create the new group header
     local insert_line = #lines + 1
-    local header_lines = {header}
+    local header_lines = {"", header}
     if complete_line_index ~= nil then
         insert_line = complete_line_index - 1 
         header_lines = {header, ""}
