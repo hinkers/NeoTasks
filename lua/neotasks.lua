@@ -172,8 +172,8 @@ local function create_border(options)
     }
 
     -- Create a buffer and window for the border
-    local border_buf = vim.api.nvim_create_buf(false, true)
-    local border_win = vim.api.nvim_open_win(border_buf, false, border_opts)
+    local border_buf = api.nvim_create_buf(false, true)
+    local border_win = api.nvim_open_win(border_buf, false, border_opts)
 
     -- Fill the border buffer with border characters
     local top = border_chars[1] .. string.rep(border_chars[2], options.width) .. border_chars[3]
@@ -184,7 +184,7 @@ local function create_border(options)
         table.insert(lines, mid)
     end
     table.insert(lines, btm)
-    vim.api.nvim_buf_set_lines(border_buf, 0, -1, false, lines)
+    api.nvim_buf_set_lines(border_buf, 0, -1, false, lines)
 
     return border_buf, border_win
 end
@@ -199,16 +199,16 @@ vim.cmd([[
 
 -- Function to be called when a window is closed
 function M.on_win_close(closed_win_id)
-    if closed_win_id == tostring(M.archive_win) and M.border_win and vim.api.nvim_win_is_valid(M.border_win) then
-        vim.api.nvim_win_close(M.border_win, true)
+    if closed_win_id == tostring(M.archive_win) and M.border_win and api.nvim_win_is_valid(M.border_win) then
+        api.nvim_win_close(M.border_win, true)
         M.border_win = nil
     end
 end
 
 -- Function to list and select archive files
 function M.open_archive_selector()
-    local editor_width = vim.api.nvim_get_option('columns')
-    local editor_height = vim.api.nvim_get_option('lines')
+    local editor_width = api.nvim_get_option('columns')
+    local editor_height = api.nvim_get_option('lines')
 
     local panel_width = M.config.panel_width
     local panel_height = 20
@@ -224,7 +224,7 @@ function M.open_archive_selector()
     }
 
     -- Create the main window buffer
-    local bufnr = vim.api.nvim_create_buf(false, true)
+    local bufnr = api.nvim_create_buf(false, true)
 
     -- Fill the buffer with archive file names
     local archives = vim.fn.globpath(archive_base_path, "archive_*.txt", false, true)
@@ -233,14 +233,15 @@ function M.open_archive_selector()
         local name = path:match("([^\\/]+)$")
         table.insert(file_names, name)
     end
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, file_names)
-
-    -- Set buffer-local keymap for Enter key
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', ':lua require("neotasks").open_selected_archive()<CR>', {noremap = true, silent = true})
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':q<CR>', {noremap = true, silent = true})
+    api.nvim_buf_set_lines(bufnr, 0, -1, false, file_names)
 
     -- Open the floating window
     M.archive_win = vim.api.nvim_open_win(bufnr, true, options)
+
+    -- Set buffer-local keymap for Enter key
+    api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', ':lua require("neotasks").open_selected_archive()<CR>', {noremap = true, silent = true})
+    api.nvim_buf_set_keymap(bufnr, 'n', '<Esc>', ':lua vim.api.nvim_win_close(' .. M.archive_win .. ', true)<CR>', {silent = true, noremap = true})
+    api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':lua vim.api.nvim_win_close(' .. M.archive_win .. ', true)<CR>', {silent = true, noremap = true})
 end
 
 -- Function to open the selected archive file
