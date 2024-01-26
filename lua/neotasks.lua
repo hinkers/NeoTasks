@@ -75,7 +75,7 @@ function M.add_todo_item(after)
         api.nvim_win_set_cursor(0, {row + 1, #M.config.new_item_text - 1})
     else
         api.nvim_buf_set_lines(0, row - 1, row - 1, false, {M.config.new_item_text}) 
-        api.nvim_win_set_cursor(0, {row - 1, #M.config.new_item_text - 1})
+        api.nvim_win_set_cursor(0, {row, #M.config.new_item_text - 1})
     end
 
     -- Enter insert mode
