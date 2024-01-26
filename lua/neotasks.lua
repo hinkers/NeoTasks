@@ -312,16 +312,20 @@ local function move_task_to_group(bufnr, task_line, group_line)
     -- Get the task
     local task = api.nvim_buf_get_lines(bufnr, task_line - 1, task_line, false)[1]
 
-    -- Remove the task from its current position
-    api.nvim_buf_set_lines(bufnr, task_line - 1, task_line, false, {})
-
     -- Adjust group_line if task_line comes before group_line
+    local adjust = 0
     if task_line < group_line then
         group_line = group_line - 1
+        adjust = 1  -- We need to adjust because the lines will shift up
     end
 
     -- Insert the task under the group header
     api.nvim_buf_set_lines(bufnr, group_line, group_line, false, {task})
+
+    -- Remove the task from its original position
+    api.nvim_buf_set_lines(bufnr, task_line - 1 + adjust, task_line + adjust, false, {})
+
+    return adjust  -- Return how much we have adjusted
 end
 
 function M.move_to_group(group_name, start_line, end_line)
@@ -336,14 +340,12 @@ function M.move_to_group(group_name, start_line, end_line)
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
-    -- Adjust header_line if moving multiple lines from above the header line
-    if start_line < header_line and end_line - start_line > 0 then
-        header_line = header_line + (end_line - start_line + 1)
-    end
+    -- Initialize adjustment for line shifting
+    local adjust = 0
 
     -- Move each task to the group
     for i = start_line, end_line do
-        move_task_to_group(bufnr, i, header_line)
+        adjust = move_task_to_group(bufnr, i - adjust, header_line)  -- Adjust the start line for each task
         header_line = header_line + 1  -- Adjust for the fact that each move shifts the lines up
     end
 end
