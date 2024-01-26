@@ -334,7 +334,7 @@ function M.move_to_group(group_name)
         start_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '<'))
         end_line, _ = unpack(api.nvim_buf_get_mark(bufnr, '>'))
         vim.cmd('normal! <Esc>')  -- Exit visual mode to prevent unexpected behavior
-        print('Visual mode detected ' .. start_line .. ' | ' .. end_line
+        print('Visual mode detected ' .. start_line .. ' | ' .. end_line)
     else  -- Normal mode
         start_line = api.nvim_win_get_cursor(0)[1]
         end_line = start_line
