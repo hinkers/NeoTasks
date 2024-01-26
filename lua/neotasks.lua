@@ -218,13 +218,13 @@ function M.open_archive_selector()
         width = panel_width,
         height = panel_height,
         row = math.floor((editor_height - panel_height) / 2),
-        col = math.floor((editor_width - panel_width) / 2)
+        col = math.floor((editor_width - panel_width) / 2),
+        style = 'minimal',
+        border = 'rounded'
     }
 
-    -- Create the main window buffer and window
+    -- Create the main window buffer
     local bufnr = vim.api.nvim_create_buf(false, true)
-    local win = vim.api.nvim_open_win(bufnr, true, options)
-    M.archive_win = win
 
     -- Fill the buffer with archive file names
     local archives = vim.fn.globpath(archive_base_path, "archive_*.txt", false, true)
@@ -239,9 +239,8 @@ function M.open_archive_selector()
     vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', ':lua require("neotasks").open_selected_archive()<CR>', {noremap = true, silent = true})
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':q<CR>', {noremap = true, silent = true})
 
-    -- Create the border
-    local border_buf, border_win = create_border(options)
-    M.border_win = border_win
+    -- Open the floating window
+    M.archive_win = vim.api.nvim_open_win(bufnr, true, options)
 end
 
 -- Function to open the selected archive file
