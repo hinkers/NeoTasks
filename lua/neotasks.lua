@@ -342,15 +342,9 @@ function M.move_to_group(group_name, start_line, end_line)
     end
 
     -- Move each task to the group
-    local offset = 0
-    for i = 0, end_line - start_line do
-        local current_line = start_line + i - offset
-        move_task_to_group(bufnr, current_line, header_line)
-        if end_line - start_line > 0 then
-            -- Adjust for the fact that each move shifts the lines up
-            header_line = header_line + 1
-            offset = offset + 1  -- Decrement the start_line for subsequent tasks
-        end
+    for i = start_line, end_line do
+        move_task_to_group(bufnr, i, header_line)
+        header_line = header_line + 1  -- Adjust for the fact that each move shifts the lines up
     end
 end
 
