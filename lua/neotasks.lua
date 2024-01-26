@@ -340,20 +340,22 @@ function M.move_to_group(group_name, start_line, end_line)
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
-    -- Move each task to the group
-    local line_offset = 0
-    for i = 0, end_line - start_line do
-        local current_line = start_line + i - line_offset
-        local adjust = move_task_to_group(bufnr, current_line, header_line + 1)  -- +1 to insert below the header
-        header_line = header_line + adjust
+    -- Collect the tasks
+    local tasks = api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
 
-        if current_line < header_line then
-            -- We are moving tasks down, so we need to increment line_offset
-            line_offset = line_offset - adjust
-        else
-            -- We are moving tasks up, so we need to decrement line_offset
-            line_offset = line_offset + adjust
-        end
+    -- Insert the tasks under the group header
+    api.nvim_buf_set_lines(bufnr, header_line, header_line, false, tasks)
+
+    -- Correct start_line and end_line if tasks are moved above their original position
+    if header_line < start_line then
+        start_line = start_line + #tasks
+        end_line = end_line + #tasks
+    end
+
+    -- Remove the original tasks
+    -- Use reverse order to ensure line numbers don't shift unexpectedly
+    for line = end_line, start_line, -1 do
+        api.nvim_buf_set_lines(bufnr, line - 1, line, false, {})
     end
 end
 
