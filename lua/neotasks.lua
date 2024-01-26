@@ -342,13 +342,20 @@ function M.move_to_group(group_name)
     -- Find or create the group header
     local header_line = find_or_create_group_header(bufnr, group_name)
 
+    -- Adjust header_line if moving multiple lines from above the header line
+    if start_line < header_line and end_line - start_line > 0 then
+        header_line = header_line + (end_line - start_line + 1)
+    end
+
     -- Move each task to the group
-    for i = 1, (end_line - start_line + 1) do
-        move_task_to_group(bufnr, start_line, header_line + 1)  -- +1 to insert below the header
+    local offset = 0
+    for i = 0, end_line - start_line do
+        local current_line = start_line + i - offset
+        move_task_to_group(bufnr, current_line, header_line)
         if end_line - start_line > 0 then
             -- Adjust for the fact that each move shifts the lines up
             header_line = header_line + 1
-            -- The start_line doesn't change because every time a line is moved, the next line takes its place
+            offset = offset + 1  -- Decrement the start_line for subsequent tasks
         end
     end
 end
