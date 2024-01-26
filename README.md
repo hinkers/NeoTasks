@@ -1,8 +1,8 @@
 # NeoTasks
 
-NeoTasks is a simple and efficient todo list manager for Neovim, designed to integrate seamlessly into your development workflow.
-It allows you to quickly add, complete, and archive tasks without leaving the comfort of your Neovim environment.
-The plugin offers a customizable interface, ensuring it fits well with your personal setup.
+NeoTasks is an intuitive and powerful task management plugin for Neovim, crafted to blend seamlessly into your development workflow.
+It offers an elegant way to manage your tasks directly within your Neovim environment, enabling you to stay focused and productive.
+With NeoTasks, you can effortlessly create, manage, and organize your tasks without ever needing to switch context.
 
 ## Features
 
@@ -10,6 +10,8 @@ The plugin offers a customizable interface, ensuring it fits well with your pers
 * **Visual Mode Support**: Perform actions on multiple tasks simultaneously using Neovim's visual mode.
 * **Archive Functionality**: Automatically stores completed tasks in daily archive files for future reference.
 * **Customizable Interface**: Configure text markers for tasks, panel width, and file paths according to your preferences.
+* **Grouping by Headers**: Organize tasks into groups using header lines and easily move tasks between groups.
+* **Floating Window for Archives**: Browse your archived tasks in a neatly presented floating window.
 
 ## Packer Installation
 
@@ -34,7 +36,22 @@ require('neotasks').setup({
     -- Base directory where the "todo.txt" file will be stored
     base_path = "~/NeoTasks/",
     -- Directory that will store all archived todo lists
-    archive_base_path = "~/NeoTasks/archives/"
+    archive_base_path = "~/NeoTasks/archives/",
+    -- Name of the group that completed todo items will be moved to
+    completed_group = "Completed",
+    -- Keybinds inside the todo list
+    keybinds = {
+        -- Create a new todo item above the cursor
+        append_todo = "gtn",
+        -- Create a new todo item below the cursor
+        prepend_todo = "gtN",
+        -- Mark all selected todo items as complete
+        complete_todo = "gtc",
+        -- Move all selected todo items to an archive file
+        archive_todo = "gta",
+        -- Move all selected todo items to a new or existing group
+        group_todo = "gtg"
+    }
 })
 ```
 
@@ -47,4 +64,6 @@ vim.keymap.set("n", "<leader>tl", "<cmd>TodoList<CR>", { desc="Open NeoTasks tod
 vim.keymap.set("n", "<leader>to", "<cmd>TodoArchives<CR>", { desc="Open NeoTasks archives" })
 ```
 
-In these examples, **`<leader>tl`** opens the todo list, and **`<leader>to`** opens the archives.
+In these examples, **`<leader>tl`** opens the todo list, and **`<leader>to`** opens the archive selector.
+
+Enjoy managing your tasks efficiently with NeoTasks!

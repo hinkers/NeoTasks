@@ -11,6 +11,7 @@ M.config = {
     panel_width = 60,
     base_path = "~/NeoTasks/",
     archive_base_path = "~/NeoTasks/archives/",
+    completed_group = "Completed",
     keybinds = {
         append_todo = "gtn",
         prepend_todo = "gtN",
@@ -96,7 +97,7 @@ local function complete_todo_item()
     local completed_line = M.config.complete_item_text .. line
 
     -- Find or create the "Completed" group header
-    local header_line = M.find_or_create_group_header(bufnr, "Completed")
+    local header_line = M.find_or_create_group_header(bufnr, M.config.completed_group)
 
     -- Move the completed item to the "Completed" group
     api.nvim_buf_set_lines(bufnr, header_line, header_line, false, {completed_line})
@@ -283,7 +284,7 @@ end
 
 function M.find_or_create_group_header(bufnr, group_name)
     local header = "## " .. group_name
-    local complete_header = "## Completed"
+    local complete_header = "## " .. M.config.completed_group
     local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
     local complete_line_index = nil
