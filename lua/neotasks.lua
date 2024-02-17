@@ -37,7 +37,7 @@ function M.setup(user_config)
         M.config = vim.tbl_extend('force', M.config, user_config)
     end
     update_paths()
-    init()
+    M.init()
 end
 
 -- Function to open Todo list pane
@@ -362,7 +362,7 @@ function M.move_to_group(group_name, start_line, end_line)
 end
 
 -- Initialization function to create necessary directories
-local function init()
+function M.init()
     if vim.fn.isdirectory(todo_base_path) == 0 then
         vim.fn.mkdir(todo_base_path, "p")  -- 'p' flag to create parent directories as needed
         vim.fn.mkdir(archive_base_path, "p")
