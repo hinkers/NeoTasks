@@ -37,6 +37,7 @@ function M.setup(user_config)
         M.config = vim.tbl_extend('force', M.config, user_config)
     end
     update_paths()
+    init()
 end
 
 -- Function to open Todo list pane
@@ -405,8 +406,5 @@ local function init()
         M.move_to_group(opts.args, opts.line1, opts.line2)
     end, { nargs = 1, range = true })
 end
-
--- Run the initalization function
-init()
 
 return M
